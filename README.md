@@ -1,32 +1,254 @@
+<div align="center">
+
 # Mohalla AI
 
-**Neighbourhood Service Discovery Platform**
+**Neighbourhood Service Discovery Platform for Indian Cities**
 
-Mohalla AI helps residents of Indian cities instantly find trusted local services — plumbers, electricians, pharmacies, dentists, mechanics, and 23 categories — simply by entering their area or locality name. The platform delivers real-time, location-aware results with phone numbers, addresses, distance, and open/closed status on an interactive map.
+*Find plumbers, pharmacies, dentists, mechanics & 23 service categories near you — one search away.*
 
-> *"Make every neighbourhood instantly navigable — so no one ever feels like a stranger where they live."*
+[![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=flat&logo=next.js&logoColor=white)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Strict-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev)
+[![Tailwind](https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?style=flat&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![Tests](https://img.shields.io/badge/Tests-100%20passing-brightgreen?style=flat)](src/__tests__/)
+[![License](https://img.shields.io/badge/License-Source%20Available-blue.svg)](LICENSE)
 
-![Landing Page](Screenshots/1.png)
+[**Documentation →**](docs/)&nbsp;&nbsp;|&nbsp;&nbsp;[**Project Plan →**](IMPLEMENTATION_PLAN.md)
+
+</div>
+
+---
+
+## Overview
+
+Mohalla AI is a web-based neighbourhood service discovery platform that enables residents of Indian cities to instantly find trusted local services — plumbers, electricians, pharmacies, dentists, mechanics, and more — simply by entering their area, society, or locality name. The platform delivers real-time, location-aware results with phone numbers, addresses, distance, and open/closed status on an interactive map.
+
+The platform addresses a genuine gap in the Indian urban experience: when you move to a new neighbourhood, finding reliable local services requires fragmented searches across Google Maps, JustDial, word-of-mouth, and society WhatsApp groups. Mohalla AI consolidates this into a single, elegant interface with a map-centric design.
+
+**What makes this different from typical service discovery tools:**
+- **Hyperlocal focus** — Searches are scoped to your specific neighbourhood, not the entire city. Results are sorted by walking distance.
+- **Auto-expanding radius** — Never shows "no results". Automatically widens the search up to 50 km to find the nearest facility.
+- **23 India-specific categories** — Includes categories like Tailor, Pest Control, Tuition, Hardware Store, and AC Repair that generic platforms miss.
+- **Zero cost, zero billing** — Runs entirely on TomTom's free tier (2,500 requests/day, no credit card required) with OSM map tiles.
+- **Real-time data** — Phone numbers, addresses, and open/closed status from TomTom's verified POI database — not scraped or crowdsourced.
+
+---
+
+## Architecture
+
+```
+User types area name (e.g. "Wakad, Pune")
+    |
+    v
++-------------------------------+
+|  SearchBar Component          |  Debounced autocomplete (300ms)
+|  - Autocomplete dropdown      |  Keyboard nav, GPS button, recent searches
++---------------+---------------+
+                |
+                v
++-------------------------------+
+|  /api/geocode                 |  TomTom Geocoding API
+|  - Area name -> lat/lng       |  Cached 30 days (in-memory / Redis)
++---------------+---------------+
+                |
+                v
++-------------------------------+
+|  CategoryPills (23 categories)|  User selects: Plumber, Pharmacy, etc.
++---------------+---------------+
+                |
+                v
++-------------------------------+
+|  /api/discover                |  TomTom POI Search API
+|  - lat/lng + category -> POIs |  Auto-expands: 3km -> 5km -> 10km -> 25km -> 50km
+|  - Cached 24 hours            |  Returns: name, phone, address, distance, hours
++---------------+---------------+
+                |
+        +-------+-------+
+        |               |
+        v               v
++---------------+ +------------------+
+|  Sidebar      | |  Leaflet Map     |
+|  - ResultCards| |  - Numbered pins |
+|  - Filters    | |  - Radius circle |
+|  - Sort/Detail| |  - Click sync    |
++---------------+ +------------------+
+        |               |
+        +-------+-------+
+                |
+                v
+        Bidirectional sync
+        (hover card = highlight pin)
+```
 
 ---
 
 ## Features
 
-- **One-search discovery** — Type your area name, get categorized service results instantly
-- **23 service categories** — Plumber, Electrician, Carpenter, Painter, Pest Control, AC Repair, Mechanic, Doctor, Dentist, Pharmacy, Pet/Vet, Grocery, Hardware, ATM/Bank, Salon, Gym, Laundry, Restaurant, Computer/Phone Repair, Tuition, Courier, Tailor, Petrol Pump
-- **Interactive map** — Leaflet-powered map with numbered markers synced to sidebar results
-- **Smart search** — Autocomplete suggestions as you type, powered by TomTom Fuzzy Search
-- **GPS location** — "Use my current location" button for instant area detection
-- **Auto-expanding radius** — Never shows "no results" — automatically widens search up to 50km to find the nearest facility
-- **Real-time data** — Phone numbers, addresses, and distance from TomTom's verified POI database
-- **Filters & sorting** — Filter by "Open Now", minimum rating, search radius. Sort by distance, rating, or reviews
-- **Dark mode** — Full dark/light/system theme support
-- **Mobile responsive** — Bottom sheet pattern on mobile, split-panel on desktop
-- **Card-map sync** — Hover a card to highlight its map pin and vice versa
-- **PWA ready** — Installable as a Progressive Web App
-- **SEO optimized** — Dynamic sitemap, robots.txt, OpenGraph tags, structured metadata
-- **Cached API calls** — In-memory cache with TTL to minimize API usage (Redis-ready)
-- **100% free** — Uses TomTom's free tier (2,500 requests/day, no credit card required)
+| Feature | Detail |
+|---------|--------|
+| **One-search discovery** | Type your area name, get categorized service results in under 2 seconds |
+| **23 service categories** | Plumber, Electrician, Carpenter, Painter, Pest Control, AC Repair, Mechanic, Doctor, Dentist, Pharmacy, Pet/Vet, Grocery, Hardware, ATM/Bank, Salon, Gym, Laundry, Restaurant, Computer/Phone, Tuition, Courier, Tailor, Petrol Pump |
+| **Interactive map** | Leaflet + OpenStreetMap with numbered markers synced to sidebar cards |
+| **Smart autocomplete** | TomTom Fuzzy Search with debounced suggestions as you type |
+| **GPS detection** | "Use my current location" button with permission handling |
+| **Auto-expanding radius** | Widens search from 3 km up to 50 km to always find results |
+| **Filters & sorting** | Open Now toggle, minimum rating, radius slider, sort by distance/rating/reviews |
+| **Card-map sync** | Hover a card to highlight its pin, click a pin to scroll to its card |
+| **Dark mode** | Full dark/light/system theme toggle with persistence |
+| **Mobile responsive** | Bottom sheet pattern on mobile, split-panel on desktop |
+| **PWA ready** | Manifest, service worker config, installable to homescreen |
+| **SEO optimized** | Dynamic sitemap (60+ URLs), robots.txt, OpenGraph metadata |
+| **Cached API calls** | In-memory cache with TTL (Redis-ready) to minimize API usage |
+| **88 unit tests + 12 E2E** | Comprehensive test coverage with Vitest and Playwright |
+
+---
+
+## Tech Stack
+
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Framework** | Next.js 16 (App Router, Turbopack) | SSR, API routes, file-based routing |
+| **Language** | TypeScript 5 (strict, noUncheckedIndexedAccess) | End-to-end type safety |
+| **UI Library** | React 19 | Component-based user interface |
+| **Styling** | Tailwind CSS v4 + shadcn/ui | Utility-first CSS with accessible components |
+| **Maps** | Leaflet + OpenStreetMap tiles | Free interactive map display |
+| **Geocoding & Search** | TomTom Search API | Geocoding, autocomplete, POI nearby search |
+| **State Management** | Zustand | Lightweight global store for search, discovery, filters |
+| **Validation** | Zod v4 | Runtime schema validation for all API inputs |
+| **Unit Testing** | Vitest + Testing Library | 88 unit and integration tests |
+| **E2E Testing** | Playwright | 12 end-to-end browser tests |
+| **ORM** | Prisma v7 | PostgreSQL schema for analytics and caching |
+| **Cache** | In-memory (Redis-ready) | TTL-based caching for API responses |
+| **CI/CD** | GitHub Actions + Vercel | Automated lint, test, build, deploy pipeline |
+| **Package Manager** | pnpm | Fast, disk-efficient dependency management |
+
+---
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── api/
+│   │   ├── geocode/          # POST — area name to coordinates
+│   │   ├── autocomplete/     # POST — search suggestions
+│   │   ├── discover/         # POST — nearby service search
+│   │   ├── details/[id]/     # GET  — full place details
+│   │   ├── categories/       # GET  — list 23 categories
+│   │   └── health/           # GET  — health check
+│   ├── layout.tsx            # Root layout (fonts, theme, PWA meta)
+│   ├── page.tsx              # Landing + discover page
+│   ├── sitemap.ts            # Dynamic sitemap (60+ URLs)
+│   └── robots.ts             # Crawler rules
+├── components/
+│   ├── search/               # SearchBar with autocomplete
+│   ├── map/                  # MapContainer (Leaflet), MapWrapper (SSR-safe)
+│   ├── sidebar/              # Sidebar, ResultCard, CardDetail, EmptyState
+│   ├── category/             # CategoryPills (23 categories with icons)
+│   ├── filters/              # FilterPanel, SortDropdown
+│   ├── layout/               # TopBar, DiscoverLayout, MobileBottomSheet, ThemeToggle
+│   └── ui/                   # shadcn/ui primitives (button, card, skeleton, etc.)
+├── lib/
+│   ├── tomtom/               # TomTom API clients (geocode, autocomplete, places)
+│   ├── cache/                # In-memory / Redis cache layer
+│   ├── db/                   # Prisma client singleton + analytics logger
+│   ├── validators/           # Zod schemas for API request validation
+│   ├── constants/            # 23 categories config, app config, design tokens
+│   └── utils/                # Haversine distance, slugify, client-side filters
+├── hooks/                    # useDebounce, useGeolocation, useMapSync
+├── store/                    # Zustand store (search, discovery, map, filters)
+├── types/                    # TypeScript interfaces for all data models
+└── __tests__/                # 88 unit/integration + 12 E2E tests
+```
+
+---
+
+## Quick Start
+
+### Prerequisites
+- Node.js 20+ ([download](https://nodejs.org))
+- pnpm 8+ (`npm install -g pnpm`)
+- TomTom API key — [free signup](https://developer.tomtom.com) (no credit card needed)
+
+### 1. Clone and install
+
+```bash
+git clone https://github.com/ninjacode911/Project-Mohalli-AI.git
+cd Project-Mohalli-AI
+pnpm install
+```
+
+### 2. Configure secrets
+
+```bash
+cp .env.example .env.local
+```
+
+Edit `.env.local` and add your TomTom API key:
+
+```
+TOMTOM_API_KEY=your_key_here
+NEXT_PUBLIC_TOMTOM_API_KEY=your_key_here
+```
+
+### 3. Run
+
+```bash
+pnpm dev
+```
+
+### 4. Use it
+1. Open [http://localhost:3000](http://localhost:3000) in your browser
+2. Type an area name (e.g. "Wakad, Pune") in the search bar
+3. Select a suggestion from the autocomplete dropdown
+4. Click a service category (Plumber, Pharmacy, Dentist, etc.)
+5. Browse results in the sidebar — click cards to expand, tap "Call Now" to dial
+
+---
+
+## Running Tests
+
+```bash
+# Unit and integration tests (88 tests)
+pnpm test
+
+# E2E browser tests (12 tests — requires Playwright)
+pnpm exec playwright install chromium
+pnpm test:e2e
+
+# Type check
+pnpm typecheck
+
+# Lint
+pnpm lint
+```
+
+---
+
+## Configuration
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `TOMTOM_API_KEY` | — | Server-side TomTom API key (required) |
+| `NEXT_PUBLIC_TOMTOM_API_KEY` | — | Client-side key for map tiles (required) |
+| `REDIS_URL` | — | Redis connection URL (optional, uses in-memory fallback) |
+| `DATABASE_URL` | — | PostgreSQL URL (optional, analytics disabled without it) |
+| `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` | Application base URL |
+| `SENTRY_DSN` | — | Sentry error tracking DSN (optional) |
+
+---
+
+## Security
+
+| Control | Implementation |
+|---------|---------------|
+| **API key isolation** | TomTom keys server-side only; client key restricted to map tiles |
+| **Input validation** | Zod schemas validate every API request at the boundary |
+| **No PII stored** | No user data stored server-side beyond anonymous search analytics |
+| **HTTPS enforced** | Strict-Transport-Security header via Vercel config |
+| **Security headers** | X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy, Permissions-Policy |
+| **Dependency audit** | `pnpm audit` returns zero vulnerabilities |
+| **Git hygiene** | `.env.local` gitignored, no secrets in any committed file |
 
 ---
 
@@ -35,10 +257,10 @@ Mohalla AI helps residents of Indian cities instantly find trusted local service
 ### Landing Page — Search & Popular Areas
 ![Landing Page](Screenshots/1.png)
 
-### Autocomplete — Live Search Suggestions
+### Autocomplete — Live Search Suggestions with Map
 ![Autocomplete](Screenshots/2.png)
 
-### Results View — Split Panel with Map (Light Mode)
+### Results View — Split Panel with Numbered Markers (Light Mode)
 ![Results Light](Screenshots/3.png)
 
 ### Results View — Dark Mode
@@ -46,283 +268,14 @@ Mohalla AI helps residents of Indian cities instantly find trusted local service
 
 ---
 
-## Tech Stack
-
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| **Framework** | Next.js 16 (App Router) | SSR, API routes, file-based routing |
-| **Language** | TypeScript 5 (strict mode) | Type safety across the entire codebase |
-| **UI** | React 19 | Component-based UI |
-| **Styling** | Tailwind CSS v4 + shadcn/ui | Utility-first CSS with pre-built components |
-| **Maps** | Leaflet + OpenStreetMap tiles | Interactive map display (free, no API key) |
-| **Geocoding & Search** | TomTom Search API | Geocoding, autocomplete, POI nearby search |
-| **State** | Zustand | Lightweight global state management |
-| **Validation** | Zod v4 | Runtime schema validation for all API inputs |
-| **Testing** | Vitest + Playwright | 88 unit/integration tests + 12 E2E tests |
-| **ORM** | Prisma v7 | PostgreSQL schema (analytics, caching) |
-| **Cache** | In-memory (Redis-ready) | TTL-based caching for API responses |
-| **CI/CD** | GitHub Actions + Vercel | Automated lint, test, build, deploy pipeline |
-| **Package Manager** | pnpm | Fast, disk-efficient dependency management |
-
----
-
-## Architecture
-
-```
-Client (Browser)
-├── React Frontend (Next.js App Router)
-├── Leaflet Map (OpenStreetMap tiles)
-└── Zustand Store (search, discovery, filters)
-        │
-        │ REST API calls
-        ▼
-API Layer (Next.js API Routes)
-├── POST /api/geocode        → TomTom Geocoding API
-├── POST /api/autocomplete   → TomTom Fuzzy Search API
-├── POST /api/discover       → TomTom POI Search API
-├── GET  /api/details/[id]   → TomTom Place Details API
-├── GET  /api/categories     → Static category list
-└── GET  /api/health         → Health check
-        │
-        ▼
-Cache Layer (In-memory / Redis)
-├── Geocode cache (30-day TTL)
-├── Discover cache (24-hour TTL)
-└── Details cache (24-hour TTL)
-```
-
----
-
-## Project Structure
-
-```
-src/
-├── app/                    # Next.js pages & API routes
-│   ├── api/                # REST API endpoints
-│   │   ├── geocode/        # Area → coordinates
-│   │   ├── autocomplete/   # Search suggestions
-│   │   ├── discover/       # Nearby service search
-│   │   ├── details/[id]/   # Place details
-│   │   ├── categories/     # Category list
-│   │   └── health/         # Health check
-│   ├── layout.tsx          # Root layout (fonts, theme, metadata)
-│   ├── page.tsx            # Landing + discover page
-│   ├── sitemap.ts          # Dynamic sitemap generation
-│   └── robots.ts           # Crawler rules
-├── components/
-│   ├── search/             # SearchBar with autocomplete
-│   ├── map/                # MapContainer (Leaflet), MapWrapper
-│   ├── sidebar/            # Sidebar, ResultCard, CardDetail, EmptyState
-│   ├── category/           # CategoryPills (23 categories)
-│   ├── filters/            # FilterPanel, SortDropdown
-│   ├── layout/             # TopBar, DiscoverLayout, MobileBottomSheet, ThemeToggle
-│   └── ui/                 # shadcn/ui primitives
-├── lib/
-│   ├── tomtom/             # TomTom API clients (geocode, autocomplete, places)
-│   ├── cache/              # Redis/in-memory cache layer
-│   ├── db/                 # Prisma client & analytics
-│   ├── validators/         # Zod schemas
-│   ├── constants/          # Categories, config, design tokens
-│   └── utils/              # Haversine distance, slugify, filters
-├── hooks/                  # useDebounce, useGeolocation, useMapSync
-├── store/                  # Zustand store (search, discovery, map, filters)
-├── types/                  # TypeScript interfaces
-└── __tests__/              # 88 unit + 12 E2E tests
-```
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 20+
-- pnpm 8+
-
-### Setup
-
-```bash
-# Clone the repository
-git clone https://github.com/ninjacode911/Project-Mohalli-AI.git
-cd Project-Mohalli-AI
-
-# Install dependencies
-pnpm install
-
-# Configure environment
-cp .env.example .env.local
-# Edit .env.local and add your TomTom API key
-# Get a free key at https://developer.tomtom.com (no credit card needed)
-
-# Start development server
-pnpm dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-### Environment Variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `TOMTOM_API_KEY` | Yes | Server-side TomTom API key |
-| `NEXT_PUBLIC_TOMTOM_API_KEY` | Yes | Client-side TomTom API key (for map tiles) |
-| `REDIS_URL` | No | Redis connection URL (uses in-memory fallback) |
-| `DATABASE_URL` | No | PostgreSQL connection URL (analytics disabled without it) |
-
----
-
-## Available Scripts
-
-| Command | Description |
-|---------|-------------|
-| `pnpm dev` | Start dev server with Turbopack |
-| `pnpm build` | Production build |
-| `pnpm start` | Start production server |
-| `pnpm lint` | Run ESLint |
-| `pnpm typecheck` | TypeScript strict mode check |
-| `pnpm test` | Run unit & integration tests (Vitest) |
-| `pnpm test:e2e` | Run end-to-end tests (Playwright) |
-| `pnpm format` | Format code with Prettier |
-
----
-
-## Testing
-
-The project has comprehensive test coverage:
-
-- **88 unit/integration tests** covering API services, validators, store, hooks, cache, filters, and utilities
-- **12 E2E tests** covering homepage rendering, API endpoints, validation, and SEO
-
-```bash
-# Run all unit/integration tests
-pnpm test
-
-# Run E2E tests (requires Playwright browsers)
-pnpm exec playwright install chromium
-pnpm test:e2e
-```
-
----
-
-## API Documentation
-
-### POST /api/geocode
-Converts an area name to coordinates.
-```json
-// Request
-{ "area": "Wakad, Pune" }
-
-// Response
-{ "lat": 18.5649, "lng": 73.8132, "formattedAddress": "Wakad, Pune, Maharashtra", "cached": false }
-```
-
-### POST /api/discover
-Finds services near a location by category.
-```json
-// Request
-{ "lat": 18.59, "lng": 73.77, "category": "plumber", "radius": 5000 }
-
-// Response
-{
-  "results": [
-    { "placeId": "...", "name": "Bhagyashree Services", "distance": 0.5, "phone": "+91 90964 50265", "address": "..." }
-  ],
-  "meta": { "category": "plumber", "totalResults": 9, "cached": false }
-}
-```
-
-### POST /api/autocomplete
-Returns search suggestions as user types.
-```json
-// Request
-{ "input": "Wakad" }
-
-// Response
-{ "suggestions": [{ "placeId": "...", "mainText": "Wakad", "secondaryText": "Pimpri Chinchwad, Maharashtra" }] }
-```
-
----
-
-## Deployment
-
-### Vercel (Recommended)
-
-1. Push code to GitHub
-2. Import project in [Vercel Dashboard](https://vercel.com)
-3. Add environment variables (`TOMTOM_API_KEY`, `NEXT_PUBLIC_TOMTOM_API_KEY`)
-4. Deploy — Vercel auto-detects Next.js and handles everything
-
-### CI/CD Pipeline
-
-The project includes a GitHub Actions workflow (`.github/workflows/ci.yml`) that runs on every push:
-- ESLint + TypeScript check
-- Unit & integration tests with coverage
-- Production build verification
-- E2E tests on pull requests
-
----
-
-## Service Categories (23)
-
-| Category | Search Query | Icon |
-|----------|-------------|------|
-| Plumber | plumber plumbing services | Wrench |
-| Electrician | electrician electrical repair | Zap |
-| Carpenter | carpenter furniture woodwork | Hammer |
-| Painter | painter house painting contractor | Paintbrush |
-| Pest Control | pest control termite cockroach | Bug |
-| AC Repair | air conditioner repair | Snowflake |
-| Mechanic | car mechanic auto repair | Car |
-| Petrol Pump | petrol pump gas station | Fuel |
-| Doctor | doctor clinic hospital | Stethoscope |
-| Dentist | dentist dental clinic | SmilePlus |
-| Pharmacy | pharmacy medical store chemist | Pill |
-| Pet / Vet | veterinary pet shop vet clinic | PawPrint |
-| Grocery | grocery supermarket kirana | ShoppingCart |
-| Hardware | hardware store building materials | HardHat |
-| ATM / Bank | ATM bank branch | Landmark |
-| Salon | salon beauty parlour haircut | Scissors |
-| Gym | gym fitness center | Dumbbell |
-| Laundry | laundry dry cleaning ironing | Shirt |
-| Restaurant | restaurant food dining | UtensilsCrossed |
-| Computer / Phone | computer repair mobile phone | Monitor |
-| Tuition | tuition coaching classes academy | GraduationCap |
-| Courier | courier delivery DTDC Blue Dart | Package |
-| Tailor | tailor stitching alteration | Ruler |
-
----
-
-## Cost
-
-**$0/month** — The entire platform runs on free tiers:
-
-| Service | Free Tier |
-|---------|-----------|
-| TomTom APIs | 2,500 requests/day (no credit card) |
-| Vercel Hosting | Free for hobby projects |
-| OpenStreetMap Tiles | Unlimited (open source) |
-| Upstash Redis | 10K commands/day free |
-| Supabase PostgreSQL | 500MB free |
-
----
-
-## Roadmap
-
-- [ ] User accounts & saved places (NextAuth.js)
-- [ ] Community reviews & tips
-- [ ] Hindi language support
-- [ ] Push notifications for deals
-- [ ] Service provider dashboard
-- [ ] Multi-city expansion beyond Pune
-
----
-
 ## License
 
-This project is private and proprietary.
+**Source Available — All Rights Reserved.** See [LICENSE](LICENSE) for full terms.
 
----
+The source code is publicly visible for viewing and educational purposes. Any
+use in personal, commercial, or academic projects requires explicit written
+permission from the author.
 
-## Author
+To request permission: navnitamrutharaj1234@gmail.com
 
-**Navnit** — [@ninjacode911](https://github.com/ninjacode911)
+**Author:** Navnit Amrutharaj
