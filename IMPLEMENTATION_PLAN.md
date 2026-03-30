@@ -1518,7 +1518,7 @@ Health monitoring:
 
 #### 3B.5 — Pre-GitHub Security Audit
 ```
-Checklist (per CLAUDE.md):
+Pre-push security checklist:
   - [ ] No API keys in any committed file (grep for key patterns)
   - [ ] .env.local in .gitignore
   - [ ] .env.example has placeholder values only

@@ -1,12 +1,36 @@
+"use client";
+
+import { TopBar } from "@/components/layout/TopBar";
+import { CategoryPills } from "@/components/category/CategoryPills";
+import { DiscoverLayout } from "@/components/layout/DiscoverLayout";
+import { Sidebar } from "@/components/sidebar/Sidebar";
+import { useAppStore } from "@/store/useAppStore";
 import { APP_CONFIG, POPULAR_AREAS } from "@/lib/constants/config";
 import { CATEGORIES } from "@/lib/constants/categories";
 
 export default function Home() {
+  const selectedLocation = useAppStore((s) => s.selectedLocation);
+  const setSearchQuery = useAppStore((s) => s.setSearchQuery);
+
+  // After search: show map + category discovery view
+  if (selectedLocation) {
+    return (
+      <div className="flex h-screen flex-col">
+        <TopBar />
+        <CategoryPills />
+        <DiscoverLayout sidebar={<Sidebar />} />
+      </div>
+    );
+  }
+
+  // Before search: landing page with hero
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
-      <main className="flex w-full max-w-2xl flex-col items-center gap-8 text-center">
-        {/* Brand */}
-        <div className="flex flex-col items-center gap-2">
+    <div className="flex min-h-screen flex-col">
+      <TopBar />
+
+      <main className="flex flex-1 flex-col items-center justify-center gap-10 px-4 py-16">
+        {/* Hero */}
+        <div className="flex flex-col items-center gap-3 text-center">
           <h1 className="font-heading text-4xl font-extrabold tracking-tight text-primary sm:text-5xl">
             {APP_CONFIG.name}
           </h1>
@@ -18,28 +42,6 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Search placeholder (Phase 1A) */}
-        <div className="w-full max-w-lg">
-          <div className="flex h-12 items-center rounded-full border border-border bg-surface px-4 text-text-muted shadow-sm">
-            <svg
-              className="mr-3 h-5 w-5 text-text-muted"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-            <span className="text-sm">
-              Enter your area, society, or PIN code...
-            </span>
-          </div>
-        </div>
-
         {/* Popular Areas */}
         <div className="flex flex-col items-center gap-3">
           <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
@@ -47,17 +49,20 @@ export default function Home() {
           </p>
           <div className="flex flex-wrap justify-center gap-2">
             {POPULAR_AREAS.map((area) => (
-              <span
+              <button
                 key={area.name}
+                onClick={() =>
+                  setSearchQuery(`${area.name}, ${area.city}`)
+                }
                 className="cursor-pointer rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:border-primary hover:text-primary"
               >
                 {area.name}, {area.city}
-              </span>
+              </button>
             ))}
           </div>
         </div>
 
-        {/* Category Preview */}
+        {/* Categories Preview */}
         <div className="flex flex-col items-center gap-3">
           <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
             {CATEGORIES.length} Service Categories

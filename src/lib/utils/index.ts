@@ -1,12 +1,5 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-/**
- * Merge Tailwind CSS classes with clsx. Standard shadcn/ui utility.
- */
-export function cn(...inputs: ClassValue[]): string {
-  return twMerge(clsx(inputs));
-}
+// Re-export cn from shadcn's utils (the canonical location)
+export { cn } from "@/lib/utils";
 
 /**
  * Calculate the distance between two lat/lng coordinates using the Haversine formula.

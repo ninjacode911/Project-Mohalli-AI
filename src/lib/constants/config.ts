@@ -32,8 +32,8 @@ export const MAP_CONFIG = {
   defaultZoom: 14,
   /** Zoom level when a specific result is focused */
   focusZoom: 16,
-  /** Map ID for custom styling (configure in Google Cloud Console) */
-  mapId: process.env.NEXT_PUBLIC_GOOGLE_MAP_ID ?? "",
+  /** TomTom API key for map tiles (client-side) */
+  apiKey: process.env.NEXT_PUBLIC_TOMTOM_API_KEY ?? "",
 } as const;
 
 export const CACHE_CONFIG = {

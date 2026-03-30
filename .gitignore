@@ -10,6 +10,8 @@
 
 # testing
 /coverage
+/playwright-report
+/test-results
 
 # next.js
 /.next/
@@ -51,3 +53,9 @@ prisma/*.db
 # IDE
 .idea/
 .vscode/settings.json
+
+# AI tooling config
+.claude/
+CLAUDE.md
+AGENTS.md
+HelpNear_Project_Plan_v1.0.pdf
